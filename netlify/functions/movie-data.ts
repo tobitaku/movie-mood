@@ -6,9 +6,9 @@ exports.handler = async () => {
     const browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: process.env.IS_LOCAL
+      executablePath: /*process.env.IS_LOCAL
         ? '/tmp/localChromium/chromium/mac_arm-1184749/chrome-mac/Chromium.app/Contents/MacOS/Chromium'
-        : await chromium.executablePath(),
+        : await chromium.executablePath()*/ await chromium.executablePath(),
       headless: chromium.headless,
     });
 
