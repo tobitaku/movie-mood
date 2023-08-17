@@ -13,6 +13,7 @@ exports.handler = async () => {
     });
 
     const page = await browser.newPage();
+    const id = 'oppenheimer-2023';
 
     // Get movie meta data first
     await page.goto(`https://letterboxd.com/film/${id}/`);
