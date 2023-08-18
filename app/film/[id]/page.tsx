@@ -1,69 +1,12 @@
-import puppeteer from 'puppeteer';
 import Sentiment from 'sentiment';
 import Image from 'next/image';
 import Link from 'next/link';
+import { movieData } from './movie-data';
 
 export async function generateStaticParams() {
-  const posts = [{ id: 'oppenheimer-2023' }];
-
-  return posts.map((post) => ({
-    id: post.id,
+  return movieData.map((movie) => ({
+    id: movie.id,
   }));
-}
-
-async function getMovieData(id: string): Promise<{
-  title: string;
-  director: string;
-  rating: string;
-  year: string;
-  imageUrl: string;
-  reviews: string;
-}> {
-  try {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-
-    // Get movie meta data first
-    await page.goto(`https://letterboxd.com/film/${id}/`);
-    const [title, director, rating, year, imageUrl] = await Promise.all([
-      page.$eval('#featured-film-header > h1', (e) => e.innerText),
-      page.$eval('#featured-film-header > p > a > span', (e) => e.innerText),
-      page.$eval(
-        '#film-page-wrapper > div.col-17 > aside > section.section.ratings-histogram-chart > span > a',
-        (e) => e.innerText
-      ),
-      page.$eval('#featured-film-header > p > small > a', (e) => e.innerText),
-      page.$eval('#poster-zoom > div > div > img', (e) => e.src),
-    ]);
-
-    // Then navigate to reviews page and get review data
-    await page.goto(`https://letterboxd.com/film/${id}/reviews/by/activity/`);
-    // Expand long reviews first
-    await page.$$eval(
-      'div.body-text.-prose.collapsible-text > div > p > a.reveal.js-reveal',
-      (moreButtons) => moreButtons.forEach((moreButton) => moreButton.click())
-    );
-    const reviews = await page.$$eval(
-      'div.body-text.-prose.collapsible-text > p',
-      (filmDetails) =>
-        filmDetails.map((filmDetail) => filmDetail.textContent).join(' ')
-    );
-
-    await browser.close();
-
-    return { title, director, rating, year, imageUrl, reviews };
-  } catch (e) {
-    console.log(e);
-    throw new Error('Failed to fetch data');
-  }
-}
-
-function preprocessReviews(reviews: string): string {
-  const processedReviews = reviews
-    .split(' ')
-    .map((review) => review.replace(/[.,\s]/g, ''));
-  // Remove duplicates by creating a Set instance and joining back together again
-  return [...new Set(processedReviews)].join();
 }
 
 function getTopFiveWords(reviewSentiment: Sentiment.AnalysisResult): {
@@ -86,9 +29,12 @@ function getTopFiveWords(reviewSentiment: Sentiment.AnalysisResult): {
 export default async function FilmPage({ params }: { params: { id: string } }) {
   const sentiment = new Sentiment();
   const { id } = params;
-  const { title, director, rating, year, imageUrl, reviews } =
-    await getMovieData(id);
-  const reviewSentiment = sentiment.analyze(preprocessReviews(reviews));
+  const movie = movieData.find((movie) => movie.id === id);
+  if (!movie) {
+    throw new Error('Could not find movie');
+  }
+  const { title, director, rating, year, imageUrl, reviews } = movie;
+  const reviewSentiment = sentiment.analyze(reviews);
   const { positive, negative } = getTopFiveWords(reviewSentiment);
 
   return (
