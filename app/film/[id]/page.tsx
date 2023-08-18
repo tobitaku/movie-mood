@@ -3,6 +3,14 @@ import Sentiment from 'sentiment';
 import Image from 'next/image';
 import Link from 'next/link';
 
+export async function generateStaticParams() {
+  const posts = [{ id: 'oppenheimer-2023' }];
+
+  return posts.map((post) => ({
+    id: post.id,
+  }));
+}
+
 async function getMovieData(id: string): Promise<{
   title: string;
   director: string;
