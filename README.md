@@ -1,6 +1,6 @@
 # Movie Mood
 
-![Movie Mood Banner](banner.png)
+![Movie Mood Banner](movie-mood.webp)
 
 Movie Mood is a project that utilizes Puppeteer, a Node.js library, to gather reviews from Letterboxd film entries. This project then conducts sentiment analysis on the top 10 movie reviews, uncovering insights into film metadata and identifying key positive and negative words associated with these reviews.
 
